@@ -62,8 +62,6 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 		return string;
 	}
 
-
-
 	return NULL;
 }
 
@@ -79,10 +77,17 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 stHeaderEntry*
 readHeader(FILE * tarFile, int *nFiles)
 {
-	stHeaderEntry *header = malloc(sizeof(stHeaderEntry));
-	char* buff = malloc(sizeof(int));
-	fread(buff, sizeof(buff), 1, tarFile);
-	nFiles = strtol(buff, '\0', 10);
+	stHeaderEntry *header;
+	int _nFiles;
+	fread(&_nFiles, sizeof(int), 1, tarFile);
+	
+	*nFiles = _nFiles;
+
+	header = malloc(sizeof(stHeaderEntry) * _nFiles);
+	for (int i = 0; i < _nFiles; i++){
+		header[i].name = loadstr(tarFile);
+		fread(&header[i].size, sizeof(int), 1, tarFile);
+	}
 	
 	return header;
 }
