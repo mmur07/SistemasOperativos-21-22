@@ -15,8 +15,6 @@ typedef struct {
   unsigned int size;
 } stHeaderEntry;
 
-const int BUFF_SIZE;
-
 int createTar(int nFiles, char *fileNames[], char tarName[]);
 int extractTar(char tarName[]);
 

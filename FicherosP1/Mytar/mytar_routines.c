@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include "mytar.h"
 
+const int BUFF_SIZE = 1;
+
 extern char *use;
 
 /** Copy nBytes bytes from the origin file to the destination file.
@@ -19,14 +21,11 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
 {
 	int copiedBytes = 0;
 	char * buffer = malloc(sizeof(char)* BUFF_SIZE);
-	printf("%d", copiedBytes);
 	while(copiedBytes < nBytes && fread(buffer, BUFF_SIZE * sizeof(char), 1, origin) != 0){
 		if (fwrite(buffer, BUFF_SIZE * sizeof(char), 1, destination) == 0){
 			if (ferror(destination)!= 0) return -1;
 		}
-
 		copiedBytes += BUFF_SIZE * sizeof(char);
-
 	}
 	if (ferror(origin)!= 0) return -1;
 	return copiedBytes;
@@ -97,7 +96,7 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 	// }
 	read = fopen(fileNames[0], "r+");
 	write = fopen(fileNames[1], "r+");
-
+	printf("Llegue\n");
 	copynFile(read, write, 100);
 	return EXIT_FAILURE;
 }
