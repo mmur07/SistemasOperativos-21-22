@@ -43,9 +43,27 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
  * Returns: !=NULL if success, NULL if error
  */
 char*
-loadstr(FILE * file)
+loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0' al final del string.
 {
-	// Complete the function
+	int bytesRead = 0;
+	char c;
+	if (file != NULL){ //Búsqueda del fin del archivo. Se calcula cuanto mide.
+		do{
+			fread(&c, sizeof(char), 1, file);
+			bytesRead++;
+		} while (!feof(file) && c != '\0');
+
+		rewind(file);
+
+		char* string = malloc(sizeof(char) * bytesRead);
+
+		fread(string, sizeof(char), bytesRead, file);
+
+		return string;
+	}
+
+
+
 	return NULL;
 }
 
@@ -61,8 +79,12 @@ loadstr(FILE * file)
 stHeaderEntry*
 readHeader(FILE * tarFile, int *nFiles)
 {
-	// Complete the function
-	return NULL;
+	stHeaderEntry *header = malloc(sizeof(stHeaderEntry));
+	char* buff = malloc(sizeof(int));
+	fread(buff, sizeof(buff), 1, tarFile);
+	nFiles = strtol(buff, '\0', 10);
+	
+	return header;
 }
 
 /** Creates a tarball archive 
@@ -96,7 +118,6 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 	// }
 	read = fopen(fileNames[0], "r+");
 	write = fopen(fileNames[1], "r+");
-	printf("Llegue\n");
 	copynFile(read, write, 100);
 	return EXIT_FAILURE;
 }

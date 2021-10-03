@@ -5,11 +5,37 @@
       "name": "Topo",
       "type": "cppdbg",
       "request": "launch",
-      "args": ["-cf", "test.mtar", "hand.txt", "grass.txt"],
+      "args": [
+        "-cf",
+        "test.mtar",
+        "hand.txt",
+        "grass.txt"
+      ],
       "stopAtEntry": false,
       "cwd": "/mnt/c/Users/friki/Desktop/Clase/SO/repo/SistemasOperativos-21-22/FicherosP1/Mytar",
       "environment": [],
       "program": "/mnt/c/Users/friki/Desktop/Clase/SO/repo/SistemasOperativos-21-22/FicherosP1/mytar/mytar",
+      "internalConsoleOptions": "openOnSessionStart",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "/mnt/c/Users/friki/Desktop/Clase/SO/repo/SistemasOperativos-21-22/FicherosP1/Mytar",
+      "environment": [],
+      "program": "/mnt/c/Users/friki/Desktop/Clase/SO/repo/SistemasOperativos-21-22/FicherosP1/Mytar/build/Debug/outDebug",
       "internalConsoleOptions": "openOnSessionStart",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
