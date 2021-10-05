@@ -116,15 +116,44 @@ readHeader(FILE * tarFile, int *nFiles)
 int
 createTar(int nFiles, char *fileNames[], char tarName[])
 {
-	// Complete the function
-	FILE* read, * write;
-	// for (int filesRead = 0; filesRead < nFiles; filesRead++){
-	// 	fopen(fileNames[filesRead], O_RDWR);
+	FILE* files[nFiles];
+	int fileSizes[nFiles];
+
+	FILE* tarFile = fopen(tarName, "wb");
+	stHeaderEntry* header = malloc(sizeof(stHeaderEntry) * nFiles);
+	int offset = 0;
+	for(int currentFile = 0; currentFile < nFiles; currentFile++){
+		//strcpy(header[currentFile].name, &tarName[currentFile]); //Anota el path de cada archivo
+		header[currentFile].name = tarName[currentFile];
+		offset += strlen(fileNames[currentFile] + 1);
+	}
+	
+	fseek(tarFile, sizeof(int) * nFiles + sizeof(char) * offset, SEEK_SET);
+
+	for(int currentFile = 0; currentFile < nFiles; currentFile++){
+		FILE* readFile = fopen(fileNames[currentFile], "r");
+		fseek(readFile, 0, SEEK_END);
+		header[currentFile].size = ftell(readFile);
+		//fileSizes[currentFile] = copynFile(files[currentFile], tarFile, )
+	}
+
+	// for (int currentFile = 0; currentFile < nFiles; currentFile++){ //Lectura de tamaño y nombres de los archivos.
+	// 	files[currentFile] = fopen(fileNames[currentFile], "r");
+	// 	fileSizes[currentFile] = loadstr(fileNames[currentFile]);
 	// }
-	read = fopen(fileNames[0], "r+");
-	write = fopen(fileNames[1], "r+");
-	copynFile(read, write, 100);
-	return EXIT_FAILURE;
+
+	// 
+	// fwrite(&nFiles, sizeof(int), 1, tarFile); //Escribe el número total de ficheros.
+	// for(int currentFile = 0; currentFile < nFiles; currentFile++){ //Escribe por cada archivo su ruta(nombre) y su tamanyo
+	// 	fwrite(fileNames[currentFile], sizeof(char), strlen(fileNames[currentFile] + 1), tarFile); 
+	// 	fwrite(fileSizes[currentFile], sizeof(int), 1, tarFile);
+	// }
+	// for(int currentFile = 0; currentFile < nFiles; currentFile++){ //Escribe los datos de cada archivo
+	// 	copynFile(files[currentFile], tarFile, fileSizes[currentFile]);
+	// 	fclose(files[currentFile]);
+	// }
+	// fclose(tarFile);
+	return EXIT_SUCCESS;
 }
 
 /** Extract files stored in a tarball archive
