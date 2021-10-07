@@ -51,14 +51,12 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 		do{
 			fread(&c, sizeof(char), 1, file);
 			bytesRead++;
-		} while (!feof(file));
+		} while (!feof(file) && c != '\0');
 
 		fseek(file, -bytesRead, SEEK_CUR);
 
 		char* string = malloc(sizeof(char) * bytesRead);
 
-		fread(string, sizeof(char), bytesRead, file);
-		
 		int i = 0;
 		do {
 			fread(&c, sizeof(char), 1, file);
@@ -84,18 +82,17 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 stHeaderEntry*
 readHeader(FILE * tarFile, int *nFiles)
 {
-	stHeaderEntry *header;
-	int _nFiles;
-	fread(&_nFiles, sizeof(int), 1, tarFile);
-	
-	*nFiles = _nFiles;
+	stHeaderEntry* header;
+	int sizeTmp = 0;
+	fread(nFiles, sizeof(int), 1, tarFile);
+	header = malloc(sizeof(stHeaderEntry) * *nFiles);
 
-	header = malloc(sizeof(stHeaderEntry) * _nFiles);
-	for (int i = 0; i < _nFiles; i++){
-		header[i].name = loadstr(tarFile);
-		fread(&header[i].size, sizeof(int), 1, tarFile);
+	for(int currentFile = 0; currentFile < *nFiles; currentFile++){
+		header[currentFile].name = loadstr(tarFile);	//nombre
+		fread(&sizeTmp, sizeof(unsigned int),1, tarFile);		//size
+		header[currentFile].size = sizeTmp;
 	}
-	
+
 	return header;
 }
 
@@ -129,6 +126,7 @@ readHeader(FILE * tarFile, int *nFiles)
 	----------------------
 	contenido del archivo
  */
+
 
 int
 createTar(int nFiles, char *fileNames[], char tarName[])
@@ -188,10 +186,10 @@ extractTar(char tarName[])
 	int nFiles;
 
 	stHeaderEntry *p;
-	p = (stHeaderEntry *) malloc(sizeof(stHeaderEntry) * (nFiles));
+	p = readHeader(tarFile, &nFiles);
 
 	//Leemos los datos de cabecera y lo almacenamos en p
-	p = readHeader(tarFile, &nFiles);
+
 
 	int i;
 	for (i = 0; i < nFiles; i++) {
