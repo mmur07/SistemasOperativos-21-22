@@ -53,7 +53,7 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 			bytesRead++;
 		} while (!feof(file) && c != '\0');
 
-		fseek(file, -bytesRead, SEEK_CUR);
+		fseek(file, -bytesRead, SEEK_CUR);	//volvemos al principio
 
 		char* string = malloc(sizeof(char) * bytesRead);
 
@@ -185,27 +185,17 @@ extractTar(char tarName[])
 	unsigned char* c;
 	int nFiles;
 
-	stHeaderEntry *p;
-	p = readHeader(tarFile, &nFiles);
+	stHeaderEntry *header;
+	header = readHeader(tarFile, &nFiles);
 
-	//Leemos los datos de cabecera y lo almacenamos en p
-
-
-	int i;
-	for (i = 0; i < nFiles; i++) {
-		//Creamos nuevo fichero con mismo nombre en modo escritura, leemos el contenido y lo copiamos en el nuevo fichero
-		FILE *nuevo = fopen(p[i].name, "w");
-		if (nuevo != NULL) {
-			c = (unsigned char*) malloc(p[i].size);
-			fread(c, sizeof(unsigned char) * p[i].size, 1, tarFile); //leemos de tarFile
-			fwrite(c, sizeof(unsigned char) * p[i].size, 1, nuevo);	//escribimos en el nuevo archivo
-			fclose(nuevo);
-		} else
-			return EXIT_FAILURE;
+	for (int currentFile = 0; currentFile < nFiles; currentFile++) {
+		FILE *nuevo = fopen(header[currentFile].name, "w");
+		c = (unsigned char*) malloc(header[currentFile].size);
+		fread(c, sizeof(unsigned char) * header[currentFile].size, 1, tarFile);
+		fwrite(c, sizeof(unsigned char) * header[currentFile].size, 1, nuevo);
+		fclose(nuevo);
 	}
 	fclose(tarFile);
-
-	printf("\nFile successfully extracted!\n\n");
 
 	return EXIT_SUCCESS;
 }
