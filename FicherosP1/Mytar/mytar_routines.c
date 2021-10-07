@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include "mytar.h"
 
-const int BUFF_SIZE = 1;
-
 extern char *use;
 
 /** Copy nBytes bytes from the origin file to the destination file.
@@ -21,11 +19,14 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
 {
 	int copiedBytes = 0;
 	char * buffer = malloc(sizeof(char)* BUFF_SIZE);
+	printf("%d", copiedBytes);
 	while(copiedBytes < nBytes && fread(buffer, BUFF_SIZE * sizeof(char), 1, origin) != 0){
 		if (fwrite(buffer, BUFF_SIZE * sizeof(char), 1, destination) == 0){
 			if (ferror(destination)!= 0) return -1;
 		}
+
 		copiedBytes += BUFF_SIZE * sizeof(char);
+
 	}
 	if (ferror(origin)!= 0) return -1;
 	return copiedBytes;
@@ -43,25 +44,9 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
  * Returns: !=NULL if success, NULL if error
  */
 char*
-loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0' al final del string.
+loadstr(FILE * file)
 {
-	int bytesRead = 0;
-	char c;
-	if (file != NULL){ //Búsqueda del fin del archivo. Se calcula cuanto mide.
-		do{
-			fread(&c, sizeof(char), 1, file);
-			bytesRead++;
-		} while (!feof(file) && c != '\0');
-
-		rewind(file);
-
-		char* string = malloc(sizeof(char) * bytesRead);
-
-		fread(string, sizeof(char), bytesRead, file);
-
-		return string;
-	}
-
+	// Complete the function
 	return NULL;
 }
 
@@ -77,19 +62,8 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 stHeaderEntry*
 readHeader(FILE * tarFile, int *nFiles)
 {
-	stHeaderEntry *header;
-	int _nFiles;
-	fread(&_nFiles, sizeof(int), 1, tarFile);
-	
-	*nFiles = _nFiles;
-
-	header = malloc(sizeof(stHeaderEntry) * _nFiles);
-	for (int i = 0; i < _nFiles; i++){
-		header[i].name = loadstr(tarFile);
-		fread(&header[i].size, sizeof(int), 1, tarFile);
-	}
-	
-	return header;
+	// Complete the function
+	return NULL;
 }
 
 /** Creates a tarball archive 
@@ -116,44 +90,16 @@ readHeader(FILE * tarFile, int *nFiles)
 int
 createTar(int nFiles, char *fileNames[], char tarName[])
 {
-	FILE* files[nFiles];
-	int fileSizes[nFiles];
-
-	FILE* tarFile = fopen(tarName, "wb");
-	stHeaderEntry* header = malloc(sizeof(stHeaderEntry) * nFiles);
-	int offset = 0;
-	for(int currentFile = 0; currentFile < nFiles; currentFile++){
-		//strcpy(header[currentFile].name, &tarName[currentFile]); //Anota el path de cada archivo
-		header[currentFile].name = tarName[currentFile];
-		offset += strlen(fileNames[currentFile] + 1);
-	}
-	
-	fseek(tarFile, sizeof(int) * nFiles + sizeof(char) * offset, SEEK_SET);
-
-	for(int currentFile = 0; currentFile < nFiles; currentFile++){
-		FILE* readFile = fopen(fileNames[currentFile], "r");
-		fseek(readFile, 0, SEEK_END);
-		header[currentFile].size = ftell(readFile);
-		//fileSizes[currentFile] = copynFile(files[currentFile], tarFile, )
-	}
-
-	// for (int currentFile = 0; currentFile < nFiles; currentFile++){ //Lectura de tamaño y nombres de los archivos.
-	// 	files[currentFile] = fopen(fileNames[currentFile], "r");
-	// 	fileSizes[currentFile] = loadstr(fileNames[currentFile]);
+	// Complete the function
+	FILE* read, * write;
+	// for (int filesRead = 0; filesRead < nFiles; filesRead++){
+	// 	fopen(fileNames[filesRead], O_RDWR);
 	// }
+	read = fopen(fileNames[0], "r+");
+	write = fopen(fileNames[1], "r+");
 
-	// 
-	// fwrite(&nFiles, sizeof(int), 1, tarFile); //Escribe el número total de ficheros.
-	// for(int currentFile = 0; currentFile < nFiles; currentFile++){ //Escribe por cada archivo su ruta(nombre) y su tamanyo
-	// 	fwrite(fileNames[currentFile], sizeof(char), strlen(fileNames[currentFile] + 1), tarFile); 
-	// 	fwrite(fileSizes[currentFile], sizeof(int), 1, tarFile);
-	// }
-	// for(int currentFile = 0; currentFile < nFiles; currentFile++){ //Escribe los datos de cada archivo
-	// 	copynFile(files[currentFile], tarFile, fileSizes[currentFile]);
-	// 	fclose(files[currentFile]);
-	// }
-	// fclose(tarFile);
-	return EXIT_SUCCESS;
+	copynFile(read, write, 100);
+	return EXIT_FAILURE;
 }
 
 /** Extract files stored in a tarball archive
