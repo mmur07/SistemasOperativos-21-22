@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include "mytar.h"
 
-const int BUFF_SIZE = 1;
-
 extern char *use;
 
 /** Copy nBytes bytes from the origin file to the destination file.
@@ -21,12 +19,12 @@ int
 copynFile(FILE * origin, FILE * destination, int nBytes)
 {
 	int copiedBytes = 0;
-	char * buffer = malloc(sizeof(char)* BUFF_SIZE);
-	while(copiedBytes < nBytes && fread(buffer, BUFF_SIZE * sizeof(char), 1, origin) != 0){
-		if (fwrite(buffer, BUFF_SIZE * sizeof(char), 1, destination) == 0){
+	char * buffer = malloc(sizeof(char)* nBytes);
+	while(copiedBytes < nBytes && fread(buffer, nBytes * sizeof(char), 1, origin) != 0){
+		if (fwrite(buffer, nBytes * sizeof(char), 1, destination) == 0){
 			if (ferror(destination)!= 0) return -1;
 		}
-		copiedBytes += BUFF_SIZE * sizeof(char);
+		copiedBytes += nBytes * sizeof(char);
 	}
 	if (ferror(origin)!= 0) return -1;
 	return copiedBytes;
@@ -131,98 +129,35 @@ readHeader(FILE * tarFile, int *nFiles)
 	----------------------
 	contenido del archivo
  */
-// int createTar(int nFiles, char *fileNames[], char tarName[]) {
-// 	//Abrimos el fichero mtar para escritura (fichero destino)
-// 	FILE *tarFile = fopen(tarName, "wb");
-// 	if (tarFile != NULL) {
-// 		//Reservamos memoria (con malloc()) para un array de stHeaderEntry
-// 		//El array tendrá tantas posiciones como ficheros en el mtar
-
-// 		stHeaderEntry *p; //nombre del struct(nombre y tamaño)
-// 		p = (stHeaderEntry*) malloc(sizeof(stHeaderEntry) * (nFiles));
-
-// 		fwrite(&nFiles, sizeof(int), 1, tarFile); // Escribimos en el tarFile el numero de ficheros
-
-// 		int headerIndex = sizeof(int); //Para saltarnos el tamaño de la cabecera( 4 Bytes)
-
-// 		FILE *inputFile; //el archivo que queremos comprimir
-
-// 		int i;
-// 		int headerSize = headerIndex + (sizeof(unsigned int) * nFiles);
-
-// 		for (i = 0; i < nFiles; i++) { //calculamos el espacio que debemos dejar para stHeaderEntry
-// 			inputFile = fopen(fileNames[i], "r");
-// 			if (inputFile != NULL) {
-// 				fseek(inputFile, 0, SEEK_END); //nos colocamos al final del fichero para calcular su tamaño
-// 				p[i].name = fileNames[i]; //guardamos nombre del fichero en stHeaderEntry
-// 				p[i].size = ftell(inputFile); //guardamos tamaño del fichero en stHeaderEntry
-// 				headerSize += (strlen(fileNames[i]) + 1);
-// 				fclose(inputFile); 		//cerramos el archivo de entrada actual
-// 			}
-// 		}
-
-// 		fseek(tarFile, headerSize, SEEK_SET); //nos colocamos en la posicion de datos (dejando reservado headerSize)
-
-// 		for (i = 0; i < nFiles; i++) {
-// 			inputFile = fopen(fileNames[i], "r");
-// 			if (inputFile != NULL) {
-// 				fseek(inputFile, 0, SEEK_END); //nos colocamos en la posicion final del fichero para calcular su tamaño
-// 				int nBytes = ftell(inputFile);
-// 				rewind(inputFile); //volvemos al inicio del fichero para luego copiar su contenido con copynFile
-// 				copynFile(inputFile, tarFile, nBytes);
-// 				fclose(inputFile);
-// 			}
-// 		}
-
-// 		fseek(tarFile, headerIndex, SEEK_SET); //volvemos a la posicion 4, al inicio despues del espacio reservado para el nº de ficheros
-
-
-// 		for (i = 0; i < nFiles; i++) {
-// 			inputFile = fopen(fileNames[i], "r");
-// 			if (inputFile != NULL) {
-// 				fwrite(p[i].name, strlen(fileNames[i]) + 1, 1, tarFile);
-// 				fwrite(&p[i].size, sizeof(int), 1, tarFile); //siempre escribimos el mismo puntero, hay que ir cambiandolo de alguna forma
-// 				fclose(inputFile);
-// 			}
-// 		}
-// 		fclose(tarFile);
-// 		return EXIT_SUCCESS;
-// 	}
-
-// 	return EXIT_FAILURE;
-// }
 
 int
 createTar(int nFiles, char *fileNames[], char tarName[])
 {
-
+	int *fileSizes = malloc(sizeof(int) * nFiles);
 	FILE* tarFile = fopen(tarName, "wb");
-	stHeaderEntry* header = malloc(sizeof(stHeaderEntry) * nFiles);
-	fwrite(&nFiles, sizeof(int), 1, tarFile);	//Numero archivos
-	int offset = 0;
+	int offset = sizeof(int) * (nFiles + 1); //Número de archivos + Tamaño de los archivos
+
 	for(int currentFile = 0; currentFile < nFiles; currentFile++){
-		header[currentFile].name = malloc(sizeof(fileNames[currentFile]) + 1);
-		strcpy(header[currentFile].name, fileNames[currentFile]); //Anota el path de cada archivo
-		header[currentFile].name = fileNames[currentFile];
-		offset += strlen(fileNames[currentFile] + 1);
+		offset+= sizeof(char) * strlen(fileNames[currentFile]) + 1;
 	}
-	
-	fseek(tarFile, sizeof(int) * nFiles + sizeof(char) * offset, SEEK_SET);
+
+	fseek(tarFile, offset, SEEK_CUR);
 
 	for(int currentFile = 0; currentFile < nFiles; currentFile++){
 		FILE* readFile = fopen(fileNames[currentFile], "r");
 		fseek(readFile, 0, SEEK_END);
-		header[currentFile].size = ftell(readFile);
+		fileSizes[currentFile] = ftell(readFile);
 		rewind(readFile);
-		copynFile(readFile, tarFile, header[currentFile].size);
+		copynFile(readFile, tarFile, fileSizes[currentFile]);
 		fclose(readFile);
 	}
 
-	fseek(tarFile, sizeof(int), SEEK_SET);	//vamos al principio del nombre del archivo
+	fseek(tarFile, 0, SEEK_SET);	//ITS REWIND TIME
+	fwrite(&nFiles, sizeof(int), 1, tarFile); //Numero archivos
 
 	for(int currentFile = 0; currentFile < nFiles; currentFile++){
-		fwrite(&header[currentFile].name, sizeof(char) * strlen(header[currentFile].name) + 1, 1, tarFile);
-		fwrite(&header[currentFile].size, sizeof(int), 1, tarFile);
+		fwrite(fileNames[currentFile], sizeof(char) * strlen(fileNames[currentFile]) + 1, 1, tarFile);
+		fwrite(&fileSizes[currentFile], sizeof(int), 1, tarFile);
 	}
 
 	fclose(tarFile);
