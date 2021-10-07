@@ -55,11 +55,11 @@ loadstr(FILE * file) //No se si funciona aun pero creo que falta ponerle un '\0'
 
 		fseek(file, -bytesRead, SEEK_CUR);	//volvemos al principio
 
-		char* string = malloc(sizeof(char) * bytesRead);
+		char* string = malloc(sizeof(char) * bytesRead);	//reservamos memoria
 
 		int i = 0;
 		do {
-			fread(&c, sizeof(char), 1, file);
+			fread(&c, sizeof(char), 1, file);	
 			string[i] = c;
 			i++;
 		} while (c != 0 && c != '\0');
@@ -190,9 +190,9 @@ extractTar(char tarName[])
 
 	for (int currentFile = 0; currentFile < nFiles; currentFile++) {
 		FILE *nuevo = fopen(header[currentFile].name, "w");
-		c = (unsigned char*) malloc(header[currentFile].size);
-		fread(c, sizeof(unsigned char) * header[currentFile].size, 1, tarFile);
-		fwrite(c, sizeof(unsigned char) * header[currentFile].size, 1, nuevo);
+		c = (char*) malloc(header[currentFile].size);
+		fread(c, sizeof(char) * header[currentFile].size, 1, tarFile);
+		fwrite(c, sizeof(char) * header[currentFile].size, 1, nuevo);
 		fclose(nuevo);
 	}
 	fclose(tarFile);
