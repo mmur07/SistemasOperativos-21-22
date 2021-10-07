@@ -1,6 +1,33 @@
 {
   "version": "0.2.0",
   "configurations": [
+    
+    {
+      "name": "Alba",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [
+        "-cf",
+        "test.mtar",
+        "hand.txt",
+        "grass.txt"
+      ],
+      "stopAtEntry": false,
+      "cwd": "/home/usuarioso/Desktop/p1/SistemasOperativos-21-22/FicherosP1/Mytar",
+      "environment": [],
+      "program": "/home/usuarioso/Desktop/p1/SistemasOperativos-21-22/FicherosP1/Mytar/mytar",
+      "internalConsoleOptions": "openOnSessionStart",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
     {
       "name": "Topo",
       "type": "cppdbg",
