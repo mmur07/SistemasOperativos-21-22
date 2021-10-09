@@ -133,6 +133,7 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 {
 	int *fileSizes = malloc(sizeof(int) * nFiles);
 	FILE* tarFile = fopen(tarName, "wb");
+	if (tarFile == NULL) return EXIT_FAILURE;
 	int offset = sizeof(int) * (nFiles + 1); //Número de archivos + Tamaño de los archivos
 
 	for(int currentFile = 0; currentFile < nFiles; currentFile++){
@@ -143,11 +144,14 @@ createTar(int nFiles, char *fileNames[], char tarName[])
 
 	for(int currentFile = 0; currentFile < nFiles; currentFile++){
 		FILE* readFile = fopen(fileNames[currentFile], "r");
+		if (readFile == NULL) return EXIT_FAILURE;
+
 		fseek(readFile, 0, SEEK_END);
 		fileSizes[currentFile] = ftell(readFile);
 		rewind(readFile);
 		copynFile(readFile, tarFile, fileSizes[currentFile]);
 		fclose(readFile);
+
 	}
 
 	fseek(tarFile, 0, SEEK_SET);	//ITS REWIND TIME
@@ -181,8 +185,8 @@ int
 extractTar(char tarName[])
 {
 	FILE *tarFile = fopen(tarName, "r");
-
-	unsigned char* c;
+	if (tarFile == NULL) return EXIT_FAILURE;
+	char* c;
 	int nFiles;
 
 	stHeaderEntry *header;
@@ -190,6 +194,7 @@ extractTar(char tarName[])
 
 	for (int currentFile = 0; currentFile < nFiles; currentFile++) {
 		FILE *nuevo = fopen(header[currentFile].name, "w");
+		if(nuevo == NULL) return EXIT_FAILURE;
 		c = (char*) malloc(header[currentFile].size);
 		fread(c, sizeof(char) * header[currentFile].size, 1, tarFile);
 		fwrite(c, sizeof(char) * header[currentFile].size, 1, nuevo);
