@@ -311,8 +311,42 @@ static int my_open(const char *path, struct fuse_file_info *fi)
 static int my_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
 	//COMPLETAR
+    char buffer[BLOCK_SIZE_BYTES];
+    int bytes2read = size, totalRead = 0;
+    NodeStruct* node = myFileSystem.nodes[fi->fh];
+    fprintf(stderr, "--->>>my_read: path %s, size %zu, offset %jd, fh %"PRIu64"\n", path, size, (intmax_t)offset, fi->fh);
 
-	return 0;
+    // Increase the file size if it is needed
+    if(resizeNode(fi->fh, size + offset) < 0)
+        return -EIO;
+
+    while(bytes2read){
+        int i;
+        int currentBlock, offBlock;
+        currentBlock = node->blocks[offset / BLOCK_SIZE_BYTES];
+        offBlock = offset % BLOCK_SIZE_BYTES;
+
+        if(readBlock(&myFileSystem, currentBlock, &buffer) == -1){
+            fprintf(stderr,"Error reading blocks in my_read\n");
+            return -EIO;
+        }
+
+        for(i = offBlock; (i < BLOCK_SIZE_BYTES) && (totalRead < size); i++) {
+            buffer[i] = buf[totalRead++];
+        }
+
+        bytes2read -= (i - offBlock);
+        offBlock += (i - offBlock);
+    }
+
+    // sync();
+
+    // node->modificationTime = time(NULL);
+    // updateSuperBlock(&myFileSystem);
+    // updateBitmap(&myFileSystem);
+    // updateNode(&myFileSystem, fi->fh, node);
+
+	return size;
 }
 
 /**
@@ -334,7 +368,6 @@ static int my_write(const char *path, const char *buf, size_t size, off_t offset
     char buffer[BLOCK_SIZE_BYTES];
     int bytes2Write = size, totalWrite = 0;
     NodeStruct *node = myFileSystem.nodes[fi->fh];
-
     fprintf(stderr, "--->>>my_write: path %s, size %zu, offset %jd, fh %"PRIu64"\n", path, size, (intmax_t)offset, fi->fh);
 
     // Increase the file size if it is needed
