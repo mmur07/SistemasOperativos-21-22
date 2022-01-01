@@ -316,10 +316,6 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
     NodeStruct* node = myFileSystem.nodes[fi->fh];
     fprintf(stderr, "--->>>my_read: path %s, size %zu, offset %jd, fh %"PRIu64"\n", path, size, (intmax_t)offset, fi->fh);
 
-    // Increase the file size if it is needed
-    if(resizeNode(fi->fh, size + offset) < 0)
-        return -EIO;
-
     while(bytes2read){
         int i;
         int currentBlock, offBlock;
@@ -338,15 +334,7 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
         bytes2read -= (i - offBlock);
         offBlock += (i - offBlock);
     }
-
-    // sync();
-
-    // node->modificationTime = time(NULL);
-    // updateSuperBlock(&myFileSystem);
-    // updateBitmap(&myFileSystem);
-    // updateNode(&myFileSystem, fi->fh, node);
-
-	return size;
+	return totalRead;
 }
 
 /**
@@ -535,10 +523,37 @@ static int my_truncate(const char *path, off_t size)
  **/
 static int my_unlink(const char *path)
 {
-	// quitar el fprintf y COMPLETAR
-	fprintf(stderr, "No implementada!!\n");
+    int index, iNode, numBlocks;
 
-	return -1;
+    fprintf(stderr, "--->>>my_unlink: path %s\n", path);
+
+    if(index = findFileByName(&myFileSystem, path) == -1) return -1;
+    iNode = myFileSystem.directory.files[index].nodeIdx;
+
+    numBlocks = myFileSystem.nodes[iNode]->numBlocks;
+    for(int k = 0; k < numBlocks; k++){
+        int aux = myFileSystem.nodes[iNode]->blocks[k];
+        myFileSystem.bitMap[aux] = 0;
+    }
+    
+    myFileSystem.numFreeNodes++;
+
+    myFileSystem.nodes[iNode]->freeNode = true;
+    myFileSystem.nodes[iNode]->modificationTime = time(NULL);
+    myFileSystem.nodes[iNode]->fileSize = 0;
+
+    myFileSystem.superBlock.numOfFreeBlocks = myQuota(&myFileSystem);
+
+    myFileSystem.directory.files[index].freeFile = true;
+    myFileSystem.directory.numFiles--;
+
+    updateSuperBlock(&myFileSystem);
+	updateDirectory(&myFileSystem);
+	updateBitmap(&myFileSystem);
+	updateNode(&myFileSystem, iNode, myFileSystem.nodes[iNode]);
+	sync();
+
+	return 0;
 }
 
 struct fuse_operations myFS_operations = {

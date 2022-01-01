@@ -4,14 +4,23 @@ MPOINT="./mount-point"
 
 rm -R -f test
 mkdir test
+rm -R -f mount-point
+mkdir mount-point
 
-echo 'file 1' > ./test/file1.txt
 echo "Copying file 1"
-cp ./test/file1.txt $MPOINT/
+cp ./src/fuseLib.c $MPOINT/
+cp ./src/fuseLib.c ./test
 read -p "Press enter..."
 
 echo "Creating file 2"
-echo 'This is file 2' > $MPOINT/file2.txt
-ls $MPOINT -la
+cp ./src/myFS.h $MPOINT/
+cp ./src/myFS.h ./test
 read -p "Press enter..."
+
+echo "Disk auditioning"
+./my-fsck virtual-disk
+if diff ./test/myFS.h $MPOINT/myFS.h
+then echo echo $"CORRECTO: Son iguales :)"
+else echo $"FALLO: No son iguales :("
+fi
 
